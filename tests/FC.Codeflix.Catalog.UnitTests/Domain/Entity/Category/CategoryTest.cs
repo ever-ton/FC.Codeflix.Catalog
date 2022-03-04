@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FC.Codeflix.Catalog.Domain.Exceptions;
+using System;
 using Xunit;
 using DomainEntity = FC.Codeflix.Catalog.Domain.Entity;
 
@@ -28,7 +29,7 @@ public class CategoryTest
         Assert.NotNull(category);
         Assert.Equal(validData.Name, category.Name);
         Assert.Equal(validData.Description, category.Description);
-        Assert.NotEqual(default(Guid),category.Id);
+        Assert.NotEqual(default(Guid), category.Id);
         Assert.NotEqual(default(DateTime), category.CreatedAt);
         Assert.True(category.CreatedAt > dateTimeBefore);
         Assert.True(category.CreatedAt < dateTimeAfter);
@@ -63,7 +64,44 @@ public class CategoryTest
         Assert.NotEqual(default(DateTime), category.CreatedAt);
         Assert.True(category.CreatedAt > dateTimeBefore);
         Assert.True(category.CreatedAt < dateTimeAfter);
-        Assert.Equal(isActive,category.IsActive);
+        Assert.Equal(isActive, category.IsActive);
     }
+
+    [Theory(DisplayName = nameof(InstantiateErrorWhenNameIsEmpty))]
+    [Trait("Domain", "Category - Aggregates")]
+    [InlineData("")]
+    [InlineData(null)]
+    [InlineData("   ")]
+    public void InstantiateErrorWhenNameIsEmpty(string? name)
+    {
+        //Arrange
+        Action action =
+            () => new DomainEntity.Category(name!, "Category description");
+
+        //Act
+        var exception = Assert.Throws<EntityValidationException>(action);
+
+        //Assert
+        Assert.Equal("Name should not be empty or null", exception.Message);
+    }
+
+    [Fact(DisplayName = nameof(InstantiateErrorWhenDescriptionIsNull))]
+    [Trait("Domain", "Category - Aggregates")]
+    public void InstantiateErrorWhenDescriptionIsNull()
+    {
+        //Arrange
+        Action action =
+            () => new DomainEntity.Category("Category Name", null!);
+
+        //Act
+        var exception = Assert.Throws<EntityValidationException>(action);
+
+        //Assert
+        Assert.Equal("Description should not be empty or null", exception.Message);
+    }
+
+    //nome deve ter no minimo 3 caracteres
+    //nome deve ter no maximo 255 caracteres
+    //descricao deve ter no máximo 10_000 caracteres
 }
 
