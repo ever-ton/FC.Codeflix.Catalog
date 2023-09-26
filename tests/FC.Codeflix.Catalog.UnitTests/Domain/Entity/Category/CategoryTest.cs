@@ -190,14 +190,14 @@ public class CategoryTest
     {
         //Arrange
         var validCategory = _categoryFixture.GetValidCategory();
-        var newValues = new { Name = "New Name", Description = "New Description" };
+        var categoryWithNewValues = _categoryFixture.GetValidCategory();
 
         //Act
-        validCategory.Update(newValues.Name, newValues.Description);
+        validCategory.Update(categoryWithNewValues.Name, categoryWithNewValues.Description);
 
         //Assert
-        validCategory.Name.Should().Be(newValues.Name);
-        validCategory.Description.Should().Be(newValues.Description);
+        validCategory.Name.Should().Be(categoryWithNewValues.Name);
+        validCategory.Description.Should().Be(categoryWithNewValues.Description);
     }
 
     [Fact(DisplayName = nameof(UpdateOnlyName))]
@@ -206,14 +206,14 @@ public class CategoryTest
     {
         //Arrange
         var validCategory = _categoryFixture.GetValidCategory();
-        var newValues = new { Name = "New Name" };
+        var newName = _categoryFixture.GetValidCategoryName();
         var currentDescription = validCategory.Description;
 
         //Act
-        validCategory.Update(newValues.Name);
+        validCategory.Update(newName);
 
         //Assert
-        validCategory.Name.Should().Be(newValues.Name);
+        validCategory.Name.Should().Be(newName);
         validCategory.Description.Should().Be(currentDescription);
     }
 
@@ -262,7 +262,7 @@ public class CategoryTest
     {
         //Arrange
         var category = _categoryFixture.GetValidCategory();
-        var invalidName = string.Join(null, Enumerable.Range(0, 256).Select(_ => "a").ToArray());
+        var invalidName = _categoryFixture.Faker.Lorem.Letter(256);
 
         //Act
         Action action =
@@ -279,7 +279,10 @@ public class CategoryTest
     {
         //Arrange
         var category = _categoryFixture.GetValidCategory();
-        var invalidDescription = string.Join(null, Enumerable.Range(0, 10_001).Select(_ => "a").ToArray());
+        var invalidDescription = _categoryFixture.Faker.Commerce.ProductDescription();
+
+        while (invalidDescription.Length <= 10_000)
+            invalidDescription = $"{invalidDescription} {_categoryFixture.Faker.Commerce.ProductDescription()}";
 
         //Act
         Action action =
