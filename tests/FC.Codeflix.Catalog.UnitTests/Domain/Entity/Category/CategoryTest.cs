@@ -1,6 +1,8 @@
 ﻿using FC.Codeflix.Catalog.Domain.Exceptions;
 using FluentAssertions;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 using Xunit;
@@ -238,10 +240,7 @@ public class CategoryTest
 
     [Theory(DisplayName = nameof(UpdateErrorWhenNameIsLessThan3Characters))]
     [Trait("Domain", "Category - Aggregates")]
-    [InlineData("1")]
-    [InlineData("12")]
-    [InlineData("a")]
-    [InlineData("ca")]
+    [MemberData(nameof(GetNameWithLessThan3Characters), parameters: 10)]
     public void UpdateErrorWhenNameIsLessThan3Characters(string invalidName)
     {
         //Arrange
@@ -255,6 +254,19 @@ public class CategoryTest
         action.Should().Throw<EntityValidationException>()
          .WithMessage("Name should be at least 3 characters long");
     }
+
+    public static IEnumerable<object[]> GetNameWithLessThan3Characters(int numberOfTests = 6)
+    {
+        var fixture = new CategoryTestFixture();
+
+        for(int i = 0;i < numberOfTests; i++)
+        {
+            var isOdd = i % 2 == 1;
+            yield return new object[] { 
+                fixture.GetValidCategoryName()[..(isOdd ? 1 : 2)] };
+        }
+    }
+
 
     [Fact(DisplayName = nameof(UpdateErrorWhenNameIsGreaterThan255Characters))]
     [Trait("Domain", "Category - Aggregates")]
