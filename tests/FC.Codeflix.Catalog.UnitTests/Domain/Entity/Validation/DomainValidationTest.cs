@@ -4,6 +4,8 @@ using FC.Codeflix.Catalog.Domain.Validation;
 using FluentAssertions;
 using System;
 using FC.Codeflix.Catalog.Domain.Exceptions;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace FC.Codeflix.Catalog.UnitTests.Domain.Entity.Validation;
 public class DomainValidationTest
@@ -15,9 +17,10 @@ public class DomainValidationTest
     [Trait("Domain", "DomainValidation - Validation")]
     public void NotNullOk()
     {
+        string? fieldName = Faker.Commerce.ProductName().Replace(" ", "");
         var value = Faker.Commerce.ProductName();
         Action action =
-            () => DomainValidation.NotNull(value, "value");
+            () => DomainValidation.NotNull(value, fieldName);
 
         action.Should().NotThrow();
     }
@@ -27,14 +30,15 @@ public class DomainValidationTest
     public void NotNullThrowWhenNull()
     {
         string? value = null;
+        string? fieldName = Faker.Commerce.ProductName().Replace(" ","");
+
         Action action =
-            () => DomainValidation.NotNull(value, "FieldName");
+            () => DomainValidation.NotNull(value, fieldName);
 
         action.Should()
             .Throw<EntityValidationException>()
-            .WithMessage("FieldName should not be null");
+            .WithMessage($"{fieldName} should not be null");
     }
-
 
     //not be null or empty
     [Theory(DisplayName = nameof(NotNullOrEmptyThrowWhenEmpty))]
@@ -44,26 +48,135 @@ public class DomainValidationTest
     [InlineData(null)]
     public void NotNullOrEmptyThrowWhenEmpty(string? target)
     {
+        string? fieldName = Faker.Commerce.ProductName().Replace(" ", "");
 
         Action action =
-            () => DomainValidation.NotNullOrEmpty(target, "FieldName");
+            () => DomainValidation.NotNullOrEmpty(target, fieldName);
 
         action.Should()
             .Throw<EntityValidationException>()
-            .WithMessage("FieldName should not be null or empty");
+            .WithMessage($"{fieldName} should not be null or empty");
     }
 
     [Fact(DisplayName = nameof(NotNullOrEmptyOk))]
     [Trait("Domain", "DomainValidation - Validation")]
     public void NotNullOrEmptyOk()
     {
+        string? fieldName = Faker.Commerce.ProductName().Replace(" ", "");
         var target = Faker.Commerce.ProductName();
+
         Action action =
-            () => DomainValidation.NotNullOrEmpty(target, "FieldName");
+            () => DomainValidation.NotNullOrEmpty(target, fieldName);
 
         action.Should().NotThrow();
     }
-    //min length
-    //max length
 
+    [Theory(DisplayName = nameof(MinLengthThrowWhenLess))]
+    [Trait("Domain", "DomainValidation - Validation")]
+    [MemberData(nameof(GetValuesSmallerThanMin), parameters: 10)]
+    public void MinLengthThrowWhenLess(string target, int minLength)
+    {
+        string? fieldName = Faker.Commerce.ProductName().Replace(" ", "");
+
+        Action action =
+            () => DomainValidation.MinLength(target, minLength, fieldName);
+
+        action.Should()
+            .Throw<EntityValidationException>()
+            .WithMessage($"{fieldName} should not be less than {minLength} characters long");
+    }
+
+    public static IEnumerable<object[]> GetValuesSmallerThanMin(int numberOfTests = 5)
+    {
+        yield return new object[] { "123456", 10 };
+        var faker = new Faker();
+
+        for (int i = 0; i < numberOfTests - 1; i++)
+        {
+            var example = faker.Commerce.ProductName();
+            var minLength = example.Length + (new Random()).Next(1, 20);
+            yield return new object[] { example, minLength };
+        }
+
+    }
+
+    [Theory(DisplayName = nameof(MinLengthOk))]
+    [Trait("Domain", "DomainValidation - Validation")]
+    [MemberData(nameof(GetValuesGreaterThanMin), parameters: 10)]
+    public void MinLengthOk(string target, int minLength)
+    {
+        string? fieldName = Faker.Commerce.ProductName().Replace(" ", "");
+
+        Action action =
+            () => DomainValidation.MinLength(target, minLength, fieldName);
+
+        action.Should().NotThrow();
+    }
+
+    public static IEnumerable<object[]> GetValuesGreaterThanMin(int numberOfTests = 5)
+    {
+        yield return new object[] { "123456", 6 };
+        var faker = new Faker();
+
+        for (int i = 0; i < numberOfTests - 1; i++)
+        {
+            var example = faker.Commerce.ProductName();
+            var minLength = example.Length - (new Random()).Next(1, 5);
+            yield return new object[] { example, minLength };
+        }
+    }
+
+    [Theory(DisplayName = nameof(MaxLengthThrowWhenGreater))]
+    [Trait("Domain", "DomainValidation - Validation")]
+    [MemberData(nameof(GetValuesGreaterThanMax), parameters: 10)]
+    public void MaxLengthThrowWhenGreater(string target, int maxLength)
+    {
+        string? fieldName = Faker.Commerce.ProductName().Replace(" ", "");
+
+        Action action = 
+            () => DomainValidation.MaxLength(target, maxLength, fieldName);
+
+        action.Should()
+            .Throw<EntityValidationException>()
+            .WithMessage($"{fieldName} should not be greater than {maxLength} characters long");
+    }
+
+    public static IEnumerable<object[]> GetValuesGreaterThanMax(int numberOfTests = 5)
+    {
+        yield return new object[] { "123456", 5 };
+        var faker = new Faker();
+
+        for (int i = 0; i < numberOfTests - 1; i++)
+        {
+            var example = faker.Commerce.ProductName();
+            var maxLength = example.Length - (new Random()).Next(1, 5);
+            yield return new object[] { example, maxLength };
+        }
+    }
+
+    [Theory(DisplayName = nameof(MaxLengthOk))]
+    [Trait("Domain", "DomainValidation - Validation")]
+    [MemberData(nameof(GetValuesLessThanMax), parameters: 10)]
+    public void MaxLengthOk(string target, int maxLength)
+    {
+        string? fieldName = Faker.Commerce.ProductName().Replace(" ", "");
+
+        Action action =
+             () => DomainValidation.MaxLength(target, maxLength, fieldName);
+
+        action.Should().NotThrow();
+    }
+
+    public static IEnumerable<object[]> GetValuesLessThanMax(int numberOfTests = 5)
+    {
+        yield return new object[] { "123456", 6 };
+        var faker = new Faker();
+
+        for (int i = 0; i < (numberOfTests - 1); i++)
+        {
+            var example = faker.Commerce.ProductName();
+            var maxLength = example.Length + (new Random()).Next(0, 5);
+            yield return new object[] { example, maxLength };
+        }
+    }
 }
