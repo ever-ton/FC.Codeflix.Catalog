@@ -100,7 +100,7 @@ public class CategoryTest
 
         //Assert
         action.Should().Throw<EntityValidationException>()
-            .WithMessage("Description should not be empty or null");
+            .WithMessage("Description should not be null");
     }
 
     [Theory(DisplayName = nameof(InstantiateErrorWhenNameIsLessThan3Characters))]
@@ -154,7 +154,7 @@ public class CategoryTest
 
         //Assert
         action.Should().Throw<EntityValidationException>()
-          .WithMessage("Description should be less or equals 10_000 characters long");
+          .WithMessage("Description should be less or equals 10000 characters long");
     }
 
     [Fact(DisplayName = nameof(Activate))]
@@ -302,7 +302,7 @@ public class CategoryTest
 
         //Assert
         action.Should().Throw<EntityValidationException>()
-       .WithMessage("Description should be less or equals 10_000 characters long");
+       .WithMessage("Description should be less or equals 10000 characters long");
     }
 }
 
